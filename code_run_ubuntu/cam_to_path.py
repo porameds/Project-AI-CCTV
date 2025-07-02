@@ -6,7 +6,7 @@ from multiprocessing import Process
 
 CONFIG = {
     "sources": {
-        "input1": "rtsp://admin:Smartfactory@192.168.1.64:554/Streaming/Channels/101"
+        #"input1": "rtsp://admin:Smartfactory@192.168.1.64:554/Streaming/Channels/101"
         # "input2": "D:/Smart/AI/CCTV/PPE RDEV/dataset1/test2"
     },
     "output_dirs": {

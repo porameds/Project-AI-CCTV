@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Environment
+.env
+*.env
+venv/
+env/
+ENV/
+*.egg-info/
+pip-log.txt
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# PyTorch / TensorFlow / Checkpoints / Models
+*.pt
+*.pth
+*.ckpt
+*.pb
+*.h5
+*.tflite
+runs/
+checkpoints/
+logs/
+output/
+weights/
+
+# Images and datasets
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+*.tiff
+*.mp4
+*.avi
+*.mkv
+*.zip
+*.tar.gz
+*.tar
+*.rar
+
+# VSCode / IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Docker
+*.log
+*.pid
+docker-compose.override.yml
+
+# Mac / Linux / Windows system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+._*
+
+# PyInstaller
+dist/
+build/
+*.spec

@@ -105,9 +105,10 @@ def is_box_inside_polygon(box, polygon):
     #return True
     return all(cv2.pointPolygonTest(polygon_np, pt,False) >= 0 for pt in box_points)
 def gen_new_filename(machine_name, predict_time, detection_result, ext =".jpg"):
+    safe_machine_name = machine_name
     predict_time_nfn = predict_time
     detection_result_nfn = detection_result
-    return f"{machine_name}_{predict_time_nfn}_{detection_result_nfn}{ext}"
+    return f"{safe_machine_name}_{predict_time_nfn}_{detection_result_nfn}{ext}"
 
 def predict_images(input_dir, output_dir, model, name_tag):
     os.makedirs(output_dir, exist_ok=True)
@@ -131,6 +132,8 @@ def predict_images(input_dir, output_dir, model, name_tag):
         result = model.predict(img)[0]
 
         boxes = result.boxes
+        # เก็บข้อมูลแยกตาม machine_name
+        machine_data = {}
         label_set = set()
         confidences = []
         has_box = False
@@ -151,6 +154,9 @@ def predict_images(input_dir, output_dir, model, name_tag):
                     if not machine_name:
                         continue
                     valid_for_saving = True
+
+                    # เก็บข้อมูลแยกตาม machine_name
+                
                    #check box in ROI
                     #in_any_polygon = any(is_box_inside_polygon(box_coords, polygon)for polygon in roi_polygons.values())
                     #if not in_any_polygon:
@@ -207,21 +213,24 @@ def predict_images(input_dir, output_dir, model, name_tag):
                 sub_signal = 4
         else:
             main_signal = 0        
-
+    for machine_name, data in machine_data.items():
         detection_result = ', '.join(sorted(label_set)) if label_set else "no detections"
         avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
-        machine_name = ', '.join(sorted(machine_names)) if machine_names else None
         predict_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_filename = gen_new_filename(machine_name, predict_time, detection_result)
 
+        # บันทึกภาพแต่ละ machine แยกไฟล์
+        save_path = os.path.join(output_dir, new_filename)
+        cv2.imwrite(save_path, original_img)  # หรือ img ที่วาดกล่องก็ได้
+
         result_dict = {
-            "predict_time": predict_time,
-            "detection_result": detection_result,
-            "main_signal": main_signal,
-            "sub_signal": sub_signal,
-            "avg_conf": round(avg_conf, 2),
-            "file_name": new_filename,
-            "machine_name": machine_name
+                "predict_time": predict_time,
+                "detection_result": detection_result,
+                "main_signal": main_signal_for_this_machine,  # คำนวณแยกตาม machine
+                "sub_signal": sub_signal,
+                "avg_conf": round(avg_conf, 2),
+                "file_name": gen_new_filename(machine_name, predict_time, detection_result),
+                "machine_name": machine_name
         }
 
         #if valid_for_saving:
@@ -234,7 +243,7 @@ def predict_images(input_dir, output_dir, model, name_tag):
                     print(f"[💾] Saved: {save_path}")
                 except Exception as e:
                     print(f"[!] Failed to save image {save_path}: {e}")
-        if sub_signal not in [0,4,5]:
+        if sub_signal not in [0]:
             save_path = os.path.join(no_box_dir, new_filename)
             if main_signal not in [0]:
                 save_path = os.path.join(no_box_dir, new_filename)

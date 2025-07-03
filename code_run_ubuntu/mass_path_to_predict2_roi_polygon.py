@@ -1,3 +1,4 @@
+
 import os
 import cv2
 import pandas as pd
@@ -7,33 +8,53 @@ import psycopg2
 from psycopg2.extras import execute_values
 import time
 import numpy as np
+import onnxruntime as ort
+
+
+"""
+ROI_ALL ={
+    "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
+    "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
+}
+"""
+
+#SELECTED_MACHINE = os.getenv("MACHINE_NAME","R2-07-11")
+
 
 CONFIG = {
-    "model_path": r"/home/user/Project/oven_machine_model/model/oven_machine_model/weights/best.onnx",
+    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_model/weights/best.onnx",
     "input_dirs": {
-        "input1": r"/home/user/Project/test_oven_3/output"
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output" 
     },
     "predict_dirs": {
-        "input1": r"/home/user/Project/test_oven_3/predict"
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/predict"
     },
     "no_box_dirs": {
-        "input1": r"/home/user/Project/test_oven_3/no_box"
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/no_box"
     },
+    
+
     # "roi_polygon": [  # พิกัด 4 จุดของกรอบ (ROI)
-    #     (215, 159),  # จุด 1
-    #     (290, 164),  # จุด 2
-    #     (290, 300),  # จุด 3
-    #     (98, 300)   # จุด 4
-    "roi_polygons": {
-        "R2-07-11": [(308, 110), (512, 137), (487, 259), (301, 312)],
-        #"R2-07-12": [(290, 164), (373, 154), (456, 299), (290, 300)]
+  
+    #"roi_polygons": {
+        #"R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
+        #"R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
+
+        "roi_polygons": {
+        #"R2-07-11": [(175, 19), (273, 9), (406, 17), (406, 174), (218, 219), (177, 118)],
+        "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
+        "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
+
+
+       #ROI_ALL[SELECTED_MACHINE]
     },
+
     "confidence_threshold": 0.5,
-    "save_image": True,
+    "save_image": False,
     "save_video": False,
     "save_csv": True,
-    "insert_db": False,
-    "show_frame_predict": True
+    "insert_db": True,
+    "show_frame_predict": False,
 }
 
 def insert_to_postgres(df):
@@ -42,7 +63,8 @@ def insert_to_postgres(df):
             (
                 str(row["predict_time"]),
                 str(row["detection_result"]),
-                int(row["label_flag"]) if row["label_flag"] is not None else None,
+                int(row["main_signal"]) if row["main_signal"] is not None else None,
+                int(row["sub_signal"]) if row["sub_signal"] is not None else None,
                 float(row["avg_conf"]) if row["avg_conf"] is not None else None,
                 str(row["file_name"]),
                 str(row["machine_name"]) if row["machine_name"] is not None else None
@@ -52,15 +74,15 @@ def insert_to_postgres(df):
 
         with psycopg2.connect(
             database="computervision",
-            user="postgres",
+            user="myuser",
             password="postgres",
             host="localhost",
             port="5432"
         ) as conn:
             with conn.cursor() as cur:
                 insert_query = """
-                    INSERT INTO smart_ai.a31_dpp_clean_by_vacuum
-                    (predict_time, detection_result, label_flag, avg_conf, file_name, machine_name)
+                    INSERT INTO smart_ai.oven_machine
+                    (predict_time, detection_result, main_signal,sub_signal,avg_conf, file_name, machine_name)
                     VALUES %s
                 """
                 execute_values(cur, insert_query, values)
@@ -82,6 +104,10 @@ def is_box_inside_polygon(box, polygon):
            # return False
     #return True
     return all(cv2.pointPolygonTest(polygon_np, pt,False) >= 0 for pt in box_points)
+def gen_new_filename(machine_name, predict_time, detection_result, ext =".jpg"):
+    predict_time_nfn = predict_time
+    detection_result_nfn = detection_result
+    return f"{machine_name}_{predict_time_nfn}_{detection_result_nfn}{ext}"
 
 def predict_images(input_dir, output_dir, model, name_tag):
     os.makedirs(output_dir, exist_ok=True)
@@ -102,14 +128,14 @@ def predict_images(input_dir, output_dir, model, name_tag):
         img_path = os.path.join(input_dir, img_file)
         img = cv2.imread(img_path)
         original_img = img.copy()
-        result = model.predict(img, device="cpu")[0]
+        result = model.predict(img)[0]
 
         boxes = result.boxes
         label_set = set()
         confidences = []
         has_box = False
         valid_for_saving = False
-        #machine_names = set()
+        machine_names = set()
 
         # วาด ROI ทุกวง
         for polygon in roi_polygons.values():
@@ -121,12 +147,14 @@ def predict_images(input_dir, output_dir, model, name_tag):
                 if conf >= CONFIG["confidence_threshold"]:
                     box_coords = tuple(map(int, box))
                     label_name = model.names[cls]
-                   # machine_name = get_box_machine_name(box_coords, roi_polygons)
-
-                   #check box in ROI
-                    in_any_polygon = any(is_box_inside_polygon(box_coords, polygon)for polygon in roi_polygons.values())
-                    if not in_any_polygon:
+                    machine_name = get_box_machine_name(box_coords, roi_polygons)
+                    if not machine_name:
                         continue
+                    valid_for_saving = True
+                   #check box in ROI
+                    #in_any_polygon = any(is_box_inside_polygon(box_coords, polygon)for polygon in roi_polygons.values())
+                    #if not in_any_polygon:
+                        #continue
 
                     label = f"{label_name} ({conf:.2f})"
                     cv2.rectangle(img, (box_coords[0], box_coords[1]), (box_coords[2], box_coords[3]), (0, 255, 0), 2)
@@ -143,62 +171,83 @@ def predict_images(input_dir, output_dir, model, name_tag):
                       #  confidences.append(conf)
                      #   has_box = True
                       #  valid_for_saving = True
-                      #  machine_names.add(machine_name)
-        arr_signal = ["machine open","mask","glove","black glove"]
-        label_flag = []
-        for item in arr_signal:
-            if item in label_set:
-                if item == "machine open":
-                    label_flag.append(1)
-                elif item == "mask":
-                    label_flag.append(2)
-                elif item == "glove":
-                    label_flag.append(3)
-                elif item == "black glove":
-                    label_flag.append(4)
-                else:
-                    label_flag.append(0)
-            else:
-                label_flag.append(0)
+                    machine_names.add(machine_name)
+        
+        # arr_signal = ["machine open","mask","glove","black glove"]
+        # main_signal = []
+        # for item in arr_signal:
+        #     if item in label_set:
+        #         if item == "machine open":
+        #             main_signal.append(1)
+        #         elif item == "mask":
+        #             main_signal.append(2)
+        #         elif item == "glove":
+        #             main_signal.append(3)
+        #         elif item == "black glove":
+        #             main_signal.append(4)
+        #         else:
+        #             main_signal.append(0)
+        #     else:
+        #         main_signal.append(0)
+        
+        main_signal =0
+        sub_signal =0
+
+        if{"machine open"}.issubset(label_set):
+            main_signal = 1
+            if{"mask","glove"}.issubset(label_set):
+                sub_signal =2
+            elif {"mask","black glove"}.issubset(label_set):
+                sub_signal = 2
+            elif{"mask"}.issubset(label_set):
+                sub_signal  = 3
+            elif{"glove"}.issubset(label_set):
+                sub_signal  = 4
+            elif{"black glove"}.issubset(label_set):
+                sub_signal = 4
+        else:
+            main_signal = 0        
 
         detection_result = ', '.join(sorted(label_set)) if label_set else "no detections"
         avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
-        #machine_name = ', '.join(sorted(machine_names)) if machine_names else None
+        machine_name = ', '.join(sorted(machine_names)) if machine_names else None
+        predict_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        new_filename = gen_new_filename(machine_name, predict_time, detection_result)
 
         result_dict = {
-            "predict_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "predict_time": predict_time,
             "detection_result": detection_result,
-            "label_flag": label_flag,
+            "main_signal": main_signal,
+            "sub_signal": sub_signal,
             "avg_conf": round(avg_conf, 2),
-            "file_name": img_file,
-            #"machine_name": machine_name
+            "file_name": new_filename,
+            "machine_name": machine_name
         }
 
         #if valid_for_saving:
         results_list.append(result_dict)
 
         if CONFIG["save_image"]:
-                save_path = os.path.join(output_dir, img_file)
+                save_path = os.path.join(output_dir, new_filename)
                 try:
                     cv2.imwrite(save_path, img)
                     print(f"[💾] Saved: {save_path}")
                 except Exception as e:
                     print(f"[!] Failed to save image {save_path}: {e}")
-        elif not has_box and label_set:
-            save_path = os.path.join(no_box_dir, img_file)
+        if sub_signal not in [0,4,5]:
+            save_path = os.path.join(no_box_dir, new_filename)
+            if main_signal not in [0]:
+                save_path = os.path.join(no_box_dir, new_filename)
             try:
                 cv2.imwrite(save_path, original_img)
                 print(f"[💾] Saved (no box): {save_path}")
             except Exception as e:
                 print(f"[!] Failed to save no-box image {save_path}: {e}")
 
-        #try:
-           # os.remove(img_path)
-           # print(f"[🗑] Removed processed image: {img_path}")
-        #except Exception as e:
-            #print(f"[!] Failed to remove {img_path}: {e}")
+        
 
         if CONFIG["show_frame_predict"]:
+            pass
             cv2.imshow(f"{name_tag} Predict", img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -223,23 +272,30 @@ def predict_images(input_dir, output_dir, model, name_tag):
         insert_to_postgres(df)
 
         print(f"[✔] Done predicting for {name_tag}")
-"""
-def is_box_inside_polygon(box, polygon):
-    x1, y1, x2, y2 = box
-    box_points = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
-    polygon_np = np.array(polygon, dtype=np.int32)
-    return all(cv2.pointPolygonTest(polygon_np, pt, False) >= 0 for pt in box_points)
 
+     # delete pic after save and insert   
+    for img_file in image_files:
+        img_path = os.path.join(input_dir, img_file)
+        try:
+            os.remove(img_path)
+            print(f"Removed processed image: {img_path}")
+        except Exception as e:
+            print(f"Failed to remove {img_path}: {e}")
+# def is_box_inside_polygon(box, polygon):
+#     x1, y1, x2, y2 = box
+#     box_points = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
+#     polygon_np = np.array(polygon, dtype=np.int32)
+#     return all(cv2.pointPolygonTest(polygon_np, pt, False) >= 0 for pt in box_points)
 def get_box_machine_name(box, roi_polygons):
     for machine_name, polygon in roi_polygons.items():
         if is_box_inside_polygon(box, polygon):
             return machine_name
     return None
-"""
-def main():
+
+def run_path_to_predict_roi_polygon_oven_b():
     model = YOLO(CONFIG["model_path"])
     try:
-        #while True:
+        while True:
             for name_tag, input_dir in CONFIG["input_dirs"].items():
                 output_dir = CONFIG["predict_dirs"][name_tag]
                 predict_images(input_dir, output_dir, model, name_tag)
@@ -247,11 +303,9 @@ def main():
             if CONFIG["show_frame_predict"]:
                 cv2.destroyAllWindows()
 
-            time.sleep(2)
+            time.sleep(5)
     except KeyboardInterrupt:
-        print("[⛔] Stopped by user")
+        print(" Stopped by user")
 
 if __name__ == "__main__":
-    main()
-
-
+    run_path_to_predict_roi_polygon_oven_b()

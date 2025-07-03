@@ -6,14 +6,14 @@ from multiprocessing import Process
 
 CONFIG = {
     "sources": {
-        "input1": "/home/user/Project/vdo_test/test_oven_vdo"
-        # "input2": "D:/Smart/AI/CCTV/PPE RDEV/dataset1/test2"
+        #"input1": "rtsp://admin:Plant_1340@192.168.75.52:554/Streaming/Channels/601"
+         "input1": "/home/smart/Project-AI-CCTV/vdo_test/oven"
     },
     "output_dirs": {
-        "input1": "/home/user/Project/test_oven_3/output"
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output"
         # "input2": "D:/Smart/AI/CCTV/PPE RDEV/dataset1/test2/output"
     },
-    "backup_video_dir": "/home/user/Project/test_oven_3/input_backup",
+    "backup_video_dir": "/home/smart/Project-AI-CCTV/test_oven_1/output/input_backup",
     "save_interval": 25,
     "show_frame": True,
     "resize": (640, 384)  # ขนาด resize
@@ -51,6 +51,7 @@ def capture_and_save_frames_from_file(source_name, video_path, output_dir):
                 saved_count += 1
 
             if CONFIG["show_frame"]:
+                pass
                 cv2.imshow(f"{source_name}", resized_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -76,6 +77,7 @@ def process_videos_in_folder(source_name, source_folder, output_folder):
     for video_file in video_files:
         video_path = os.path.join(source_folder, video_file)
         capture_and_save_frames_from_file(source_name, video_path, output_folder)
+        
 
 def start_process(source_name, source):
     output_folder = CONFIG["output_dirs"][source_name]
@@ -89,7 +91,7 @@ def start_process(source_name, source):
     else:
         print(f"[✘] Invalid source path: {source}")
 
-def main():
+def run_cam_to_path_oven_b():
     processes = []
 
     for source_name, source in CONFIG["sources"].items():
@@ -104,4 +106,4 @@ def main():
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    run_cam_to_path_oven_b()

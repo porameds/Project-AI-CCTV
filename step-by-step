@@ -1,0 +1,77 @@
+***install driver tp-link on Ubuntu
+: lsusb ###check usb wifi
+: sudo apt update
+: sudo apt install -y build-essential dkms git
+: git clone https://github.com/aircrack-ng/rtl8812au.git
+cd rtl8812au
+: sudo make dkms_install
+: sudo reboot
+: iwconfig ### check
+--------------------------------------------------------------------------------------------
+***install chrome on Ubuntu
+: sudo apt update ###ubdate system first
+: sudo apt install wget -y ###install important packege
+: wget https://dl.google.com/limux/direct/google-chrome-stable_current_amd64.deb
+: sudo apt install ./google-chrome-stable_current_amd64.deb ###install chrome
+: google-chrome ###open chrome
+--------------------------------------------------------------------------------------
+***install CVAT on ubuntu
+### install Docker and DockerCompose
+: sudo apt update
+: sudo apt install -y docker.io docker-compose git
+: sudo systemctl enable docker
+: sudo systemctl start docker
+: sudo usermod -aG docker $USER
+### log out and log in 
+: git clone https://github.com/opencv/cvat.git ### clone cvat
+: cd cvat
+### build .env
+: cat <<EOF > .env
+CVAT_HOST=localhost
+CVAT_PORT=8080
+CVAT_ADMIN_USERNAME=admin
+CVAT_ADMIN_PASSWORD=admin
+CVAT_DB_USER=cvat
+CVAT_DB_PASSWORD=cvat
+CVAT_DB_HOST=db
+CVAT_DB_PORT=5432
+CVAT_DB_NAME=cvat
+EOF
+: sudo docker-compose up -d
+: ### open browser and go to http://localhost:8080
+-------------------------------------------------------------------------------------------
+***gitignore
+: touch .gitignore
+: nano .gitignore
+-------------------------------------------------------------------------------------------
+*** install vscode on ubuntu
+: sudo apt update
+: sudo apt install wget gpg -y
+: wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+: sudo install -o root -g root -m 644 packages.microsoft.gpg /usr/share/keyrings/
+: sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] \
+https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+
+: sudo apt update
+: sudo apt install code -y
+-----------------------------------------------------------------------------------------
+*** command github push pull commit on ubuntu
+: git add .
+: git commit -m "ubuntu commit"
+: git push origin main
+-----------------------------------------------------------------------------------------
+***install postgres on ubuntu
+: sudo apt update
+: sudo apt upgrade -y
+: sudo apt install postgresql postgresql-contrib -y
+: sudo systemctl status postgresql ### check
+-------------------------------------------------------------------------------
+*** install DBeaver on ubuntu
+: wget https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb
+: sudo apt install ./dbeaver-ce_latest_amd64.deb
+: dbeaver & ### open
+
+
+
+
+

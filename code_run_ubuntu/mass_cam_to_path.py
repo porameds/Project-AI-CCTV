@@ -6,8 +6,8 @@ from multiprocessing import Process
 
 CONFIG = {
     "sources": {
-        #"input1": "rtsp://admin:Plant_1340@192.168.75.52:554/Streaming/Channels/601"
-         "input1": "/home/smart/Project-AI-CCTV/vdo_test/oven"
+        "input1": "rtsp://admin:Plant_1340@192.168.75.45:554/Streaming/Channels/801"
+         #"input1": "/home/smart/Project-AI-CCTV/vdo_test/oven"
     },
     "output_dirs": {
         "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output"
@@ -91,7 +91,7 @@ def start_process(source_name, source):
     else:
         print(f"[✘] Invalid source path: {source}")
 
-def run_cam_to_path_oven_b():
+def run_cam_to_path_oven():
     processes = []
 
     for source_name, source in CONFIG["sources"].items():
@@ -106,4 +106,4 @@ def run_cam_to_path_oven_b():
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    run_cam_to_path_oven_b()
+    run_cam_to_path_oven()

@@ -70,6 +70,17 @@ https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d
 : wget https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb
 : sudo apt install ./dbeaver-ce_latest_amd64.deb
 : dbeaver & ### open
+------------------------------------------------------------------------------
+***use gpu
+: pip install onnxruntime-gpu
+*** install nvidia driver
+: sudo apt update
+: sudo apt install nvidia-driver-550
+: sudo reboot
+: nvidia-smi ### check nvidia
+*** install cuda tool
+: sudo apt install nvidia-cuda-toolkit
+
 
 
 

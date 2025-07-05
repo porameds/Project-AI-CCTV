@@ -1,5 +1,6 @@
 
 import os
+import torch
 import cv2
 import pandas as pd
 from datetime import datetime
@@ -22,7 +23,7 @@ ROI_ALL ={
 
 
 CONFIG = {
-    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_model/weights/best.onnx",
+    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_model/weights/best.pt",
     "input_dirs": {
         "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output" 
     },
@@ -110,7 +111,7 @@ def gen_new_filename(machine_name, predict_time, detection_result, ext =".jpg"):
     detection_result_nfn = detection_result
     return f"{safe_machine_name}_{predict_time_nfn}_{detection_result_nfn}{ext}"
 
-def predict_images(input_dir, output_dir, model, name_tag):
+def predict_images(input_dir, output_dir, model, name_tag, device="cpu"):
     os.makedirs(output_dir, exist_ok=True)
     no_box_dir = CONFIG["no_box_dirs"][name_tag]
     os.makedirs(no_box_dir, exist_ok=True)
@@ -128,7 +129,7 @@ def predict_images(input_dir, output_dir, model, name_tag):
         img_path = os.path.join(input_dir, img_file)
         img = cv2.imread(img_path)
         original_img = img.copy()
-        result = model.predict(img)[0]
+        result = model.predict(img, device=device)[0]
 
         boxes = result.boxes
         machine_data = {mn: {"labels": set(), "confidences": [], "boxes": []} for mn in roi_polygons.keys()}
@@ -236,8 +237,14 @@ def get_box_machine_name(box, roi_polygons):
             return machine_name
     return None
 
-def run_path_to_predict_roi_polygon_oven_b():
+def run_path_to_predict_roi_polygon_oven():
+    # model = YOLO(CONFIG["model_path"])
+    # model.to('cuda')
+    device = 0 if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {'cuda' if device == 0 else 'cpu'}")
+
     model = YOLO(CONFIG["model_path"])
+
     try:
         while True:
             for name_tag, input_dir in CONFIG["input_dirs"].items():
@@ -252,4 +259,4 @@ def run_path_to_predict_roi_polygon_oven_b():
         print(" Stopped by user")
 
 if __name__ == "__main__":
-    run_path_to_predict_roi_polygon_oven_b()
+    run_path_to_predict_roi_polygon_oven()

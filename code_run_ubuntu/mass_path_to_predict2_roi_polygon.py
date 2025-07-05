@@ -123,7 +123,6 @@ def predict_images(input_dir, output_dir, model, name_tag):
     ])
 
     results_list = []
-    video_writer = None
 
     for img_file in image_files:
         img_path = os.path.join(input_dir, img_file)
@@ -132,18 +131,7 @@ def predict_images(input_dir, output_dir, model, name_tag):
         result = model.predict(img)[0]
 
         boxes = result.boxes
-        # เก็บข้อมูลแยกตาม machine_name
-        machine_data = {}
-        label_set = set()
-        confidences = []
-        has_box = False
-        valid_for_saving = False
-        machine_names = set()
-
-        # วาด ROI ทุกวง
-        for polygon in roi_polygons.values():
-            roi_np = np.array([polygon], dtype=np.int32)
-            cv2.polylines(img, roi_np, isClosed=True, color=(255, 0, 0), thickness=2)
+        machine_data = {mn: {"labels": set(), "confidences": [], "boxes": []} for mn in roi_polygons.keys()}
 
         if boxes and len(boxes.conf) > 0:
             for box, conf, cls in zip(boxes.xyxy.cpu().numpy(), boxes.conf.cpu().numpy(), boxes.cls.cpu().numpy().astype(int)):
@@ -153,143 +141,90 @@ def predict_images(input_dir, output_dir, model, name_tag):
                     machine_name = get_box_machine_name(box_coords, roi_polygons)
                     if not machine_name:
                         continue
-                    valid_for_saving = True
+                    
+                    machine_data[machine_name]["labels"].add(label_name)
+                    machine_data[machine_name]["confidences"].append(conf)
+                    machine_data[machine_name]["boxes"].append(box_coords)
 
-                    # เก็บข้อมูลแยกตาม machine_name
-                
-                   #check box in ROI
-                    #in_any_polygon = any(is_box_inside_polygon(box_coords, polygon)for polygon in roi_polygons.values())
-                    #if not in_any_polygon:
-                        #continue
-
+                    # วาดกล่องบนภาพ
                     label = f"{label_name} ({conf:.2f})"
                     cv2.rectangle(img, (box_coords[0], box_coords[1]), (box_coords[2], box_coords[3]), (0, 255, 0), 2)
                     cv2.putText(img, label, (box_coords[0], box_coords[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                   # if machine_name:
-                      #  label = f"{model.names[cls]} ({conf:.2f}) [{machine_name}]"
-                      #  cv2.rectangle(img, (box_coords[0], box_coords[1]), (box_coords[2], box_coords[3]), (0, 255, 0), 2)
-                       # cv2.putText(img, label, (box_coords[0], box_coords[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                    label_set.add(label_name)
-                    confidences.append(conf)
-                    has_box = True
-                    valid_for_saving = True
-                      #  label_set.add(model.names[cls])
-                      #  confidences.append(conf)
-                     #   has_box = True
-                      #  valid_for_saving = True
-                    machine_names.add(machine_name)
-        
-        # arr_signal = ["machine open","mask","glove","black glove"]
-        # main_signal = []
-        # for item in arr_signal:
-        #     if item in label_set:
-        #         if item == "machine open":
-        #             main_signal.append(1)
-        #         elif item == "mask":
-        #             main_signal.append(2)
-        #         elif item == "glove":
-        #             main_signal.append(3)
-        #         elif item == "black glove":
-        #             main_signal.append(4)
-        #         else:
-        #             main_signal.append(0)
-        #     else:
-        #         main_signal.append(0)
-        
-        main_signal =0
-        sub_signal =0
 
-        if{"machine open"}.issubset(label_set):
-            main_signal = 1
-            if{"mask","glove"}.issubset(label_set):
-                sub_signal =2
-            elif {"mask","black glove"}.issubset(label_set):
-                sub_signal = 2
-            elif{"mask"}.issubset(label_set):
-                sub_signal  = 3
-            elif{"glove"}.issubset(label_set):
-                sub_signal  = 4
-            elif{"black glove"}.issubset(label_set):
-                sub_signal = 4
-        else:
-            main_signal = 0        
-    for machine_name, data in machine_data.items():
-        detection_result = ', '.join(sorted(label_set)) if label_set else "no detections"
-        avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
-        predict_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_filename = gen_new_filename(machine_name, predict_time, detection_result)
+        # วนลูปแยกเครื่อง
+        for machine_name, data in machine_data.items():
+            label_set = data["labels"]
+            confidences = data["confidences"]
+            boxes = data["boxes"]
 
-        # บันทึกภาพแต่ละ machine แยกไฟล์
-        save_path = os.path.join(output_dir, new_filename)
-        cv2.imwrite(save_path, original_img)  # หรือ img ที่วาดกล่องก็ได้
+            if not label_set:
+                continue  # ข้ามถ้าไม่มี label ในเครื่องนี้
 
-        result_dict = {
+            # คำนวณ signal
+            main_signal = 0
+            sub_signal = 0
+            if "machine open" in label_set:
+                main_signal = 1
+                if {"mask", "glove"}.issubset(label_set) or {"mask", "black glove"}.issubset(label_set):
+                    sub_signal = 2
+                elif "mask" in label_set:
+                    sub_signal = 3
+                elif "glove" in label_set or "black glove" in label_set:
+                    sub_signal = 4
+
+            detection_result = ', '.join(sorted(label_set))
+            avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
+            predict_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            new_filename = gen_new_filename(machine_name, predict_time, detection_result)
+
+            result_dict = {
                 "predict_time": predict_time,
                 "detection_result": detection_result,
-                "main_signal": main_signal_for_this_machine,  # คำนวณแยกตาม machine
+                "main_signal": main_signal,
                 "sub_signal": sub_signal,
                 "avg_conf": round(avg_conf, 2),
-                "file_name": gen_new_filename(machine_name, predict_time, detection_result),
+                "file_name": new_filename,
                 "machine_name": machine_name
-        }
+            }
+            results_list.append(result_dict)
 
-        #if valid_for_saving:
-        results_list.append(result_dict)
-
-        if CONFIG["save_image"]:
-                save_path = os.path.join(output_dir, new_filename)
+            # บันทึกภาพ no_box เฉพาะภาพที่เข้าเงื่อนไข
+            if sub_signal not in [0] and main_signal != 0:
                 try:
-                    cv2.imwrite(save_path, img)
-                    print(f"[💾] Saved: {save_path}")
+                    cv2.imwrite(os.path.join(no_box_dir, new_filename), original_img)
+                    print(f" Saved (no box): {new_filename}")
                 except Exception as e:
-                    print(f"[!] Failed to save image {save_path}: {e}")
-        if sub_signal not in [0]:
-            save_path = os.path.join(no_box_dir, new_filename)
-            if main_signal not in [0]:
-                save_path = os.path.join(no_box_dir, new_filename)
-            try:
-                cv2.imwrite(save_path, original_img)
-                print(f"[💾] Saved (no box): {save_path}")
-            except Exception as e:
-                print(f"[!] Failed to save no-box image {save_path}: {e}")
+                    print(f"[!] Failed to save no-box image {new_filename}: {e}")
 
-        
+            if CONFIG["save_image"]:
+                try:
+                    cv2.imwrite(os.path.join(output_dir, new_filename), img)
+                except Exception as e:
+                    print(f"[!] Failed to save image {new_filename}: {e}")
 
         if CONFIG["show_frame_predict"]:
-            pass
             cv2.imshow(f"{name_tag} Predict", img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        if CONFIG["save_video"]:
-            if video_writer is None:
-                height, width = img.shape[:2]
-                video_path = os.path.join(output_dir, f"{name_tag}_predict_output.avi")
-                video_writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'XVID'), 10, (width, height))
-            video_writer.write(img)
-
-    if video_writer:
-        video_writer.release()
-
-    if CONFIG["save_csv"]:
+    # Save CSV
+    if CONFIG["save_csv"] and results_list:
         df = pd.DataFrame(results_list)
         csv_path = os.path.join(output_dir, f"{name_tag}_results.csv")
         df.to_csv(csv_path, index=False)
 
+    # Insert DB
     if CONFIG["insert_db"] and results_list:
-        df = pd.DataFrame(results_list)
-        insert_to_postgres(df)
+        insert_to_postgres(pd.DataFrame(results_list))
 
-        print(f"[✔] Done predicting for {name_tag}")
-
-     # delete pic after save and insert   
+    # Remove processed images
     for img_file in image_files:
         img_path = os.path.join(input_dir, img_file)
         try:
             os.remove(img_path)
-            print(f"Removed processed image: {img_path}")
         except Exception as e:
-            print(f"Failed to remove {img_path}: {e}")
+            print(f"[!] Failed to remove {img_path}: {e}")
+
 # def is_box_inside_polygon(box, polygon):
 #     x1, y1, x2, y2 = box
 #     box_points = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]

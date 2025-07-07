@@ -23,15 +23,15 @@ ROI_ALL ={
 
 
 CONFIG = {
-    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_model/weights/best.pt",
+    "model_path": "/app/oven_machine_model/weights/best.pt",
     "input_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output" 
+        "input1": "/app/test_oven_1/output" 
     },
     "predict_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/predict"
+        "input1": "/app/test_oven_1/predict"
     },
     "no_box_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_1/no_box"
+        "input1": "/app/test_oven_1/no_box"
     },
     
 

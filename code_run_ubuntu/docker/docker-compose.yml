@@ -3,12 +3,16 @@ version: "3.8"
 services:
   ai_app:
     build:
-      context: ..
+      context: /home/smart/Project-AI-CCTV/code_run_ubuntu
       dockerfile: docker/Dockerfile
     volumes:
-      - ../:/app
-    runtime: nvidia
+      - /home/smart/Project-AI-CCTV/code_run_ubuntu:/app
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
     working_dir: /app
     command: python main_run_oven_machine.py

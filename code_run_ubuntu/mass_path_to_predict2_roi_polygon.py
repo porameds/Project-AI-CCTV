@@ -53,7 +53,7 @@ CONFIG = {
     "confidence_threshold": 0.5,
     "save_image": False,
     "save_video": False,
-    "save_csv": True,
+    "save_csv": False,
     "insert_db": True,
     "show_frame_predict": False,
 }

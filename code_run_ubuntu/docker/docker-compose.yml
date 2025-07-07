@@ -7,8 +7,12 @@ services:
       dockerfile: docker/Dockerfile
     volumes:
       - /home/smart/Project-AI-CCTV/code_run_ubuntu:/app
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    network_mode: host
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+      - TZ=Asia/Bangkok
     deploy:
       resources:
         reservations:

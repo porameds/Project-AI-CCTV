@@ -67,3 +67,4 @@ Icon?
 dist/
 build/
 *.spec
+code_run_ubuntu/test_oven_1/predict/input1_results.csv

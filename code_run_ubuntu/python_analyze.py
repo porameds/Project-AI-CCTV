@@ -157,6 +157,8 @@ def run_job():
         df_1 = count_fai_judge_summary()
         insert_on_conflict_fai_judge(df_1)
 
+        print(f"[{datetime.now()}] ✅ Schedule working")
+
     except Exception as e:
         print(f"[{datetime.now()}]  ERROR: {e}")
 

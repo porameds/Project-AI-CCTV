@@ -20,3 +20,24 @@ services:
             - capabilities: [gpu]
     working_dir: /app
     command: python main_run_oven_machine.py
+
+  analyze:
+        build:
+          context: /home/smart/Project-AI-CCTV/code_run_ubuntu
+          dockerfile: docker/Dockerfile
+        volumes:
+          - /home/smart/Project-AI-CCTV/code_run_ubuntu:/app
+        working_dir: /app
+        command: python python_analyze.py
+        restart: always
+        network_mode: host
+        environment:
+          - TZ=Asia/Bangkok
+        healthcheck:
+          test: ["CMD", "pgrep", "-f", "python_analyze"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 10s
+
+

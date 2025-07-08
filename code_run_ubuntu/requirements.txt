@@ -3,3 +3,6 @@ pandas==2.3.0
 ultralytics==8.3.152
 psycopg2-binary==2.9.10
 onnxruntime-gpu
+sqlalchemy
+schedule
+numpy<2

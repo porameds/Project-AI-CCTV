@@ -27,16 +27,16 @@ cd rtl8812au
 : cd cvat
 ### build .env
 : cat <<EOF > .env
-CVAT_HOST=localhost
-CVAT_PORT=8080
-CVAT_ADMIN_USERNAME=admin
-CVAT_ADMIN_PASSWORD=admin
-CVAT_DB_USER=cvat
-CVAT_DB_PASSWORD=cvat
-CVAT_DB_HOST=db
-CVAT_DB_PORT=5432
-CVAT_DB_NAME=cvat
-EOF
+    CVAT_HOST=localhost
+    CVAT_PORT=8080
+    CVAT_ADMIN_USERNAME=admin
+    CVAT_ADMIN_PASSWORD=admin
+    CVAT_DB_USER=cvat
+    CVAT_DB_PASSWORD=cvat
+    CVAT_DB_HOST=db
+    CVAT_DB_PORT=5432
+    CVAT_DB_NAME=cvat
+    EOF
 : sudo docker-compose up -d
 : ### open browser and go to http://localhost:8080
 -------------------------------------------------------------------------------------------

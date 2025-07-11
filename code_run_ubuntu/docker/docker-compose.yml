@@ -20,6 +20,7 @@ services:
             - capabilities: [gpu]
     working_dir: /app
     command: python main_run_oven_machine.py
+    restart: always
 
   analyze:
         build:

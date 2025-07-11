@@ -3,6 +3,7 @@ import os
 import shutil
 from datetime import datetime
 from multiprocessing import Process
+import time
 
 CONFIG = {
     "sources": {
@@ -23,11 +24,13 @@ def is_video_file(path):
     return any(path.lower().endswith(ext) for ext in [".mp4", ".avi", ".mov", ".mkv"])
 
 def capture_and_save_frames_from_file(source_name, video_path, output_dir):
-    try:
+    while True:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
             print(f"[✘] Cannot open video/stream: {video_path}")
-            return
+            cap.release()
+            time.sleep(10)
+            continue
 
         os.makedirs(output_dir, exist_ok=True)
         frame_count = 0
@@ -36,37 +39,38 @@ def capture_and_save_frames_from_file(source_name, video_path, output_dir):
         # ใช้ชื่อไฟล์หากเป็นวิดีโอไฟล์ / หรือชื่อ "live" สำหรับ RTSP
         base_name = os.path.splitext(os.path.basename(video_path))[0] if os.path.isfile(video_path) else "live"
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                continue
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    continue
 
-            resized_frame = cv2.resize(frame, CONFIG["resize"])
-            frame_count += 1
+                resized_frame = cv2.resize(frame, CONFIG["resize"])
+                frame_count += 1
 
-            if frame_count % CONFIG["save_interval"] == 0:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-                filename = f"{source_name}_{base_name}_{timestamp}.jpg"
-                cv2.imwrite(os.path.join(output_dir, filename), resized_frame)
-                saved_count += 1
+                if frame_count % CONFIG["save_interval"] == 0:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                    filename = f"{source_name}_{base_name}_{timestamp}.jpg"
+                    cv2.imwrite(os.path.join(output_dir, filename), resized_frame)
+                    saved_count += 1
 
+                if CONFIG["show_frame"]:
+                    pass
+                    cv2.imshow(f"{source_name}", resized_frame)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+
+            print(f"[✔] Saved {saved_count} frames from {video_path}")
+            
+            # สำหรับวิดีโอไฟล์ → ย้ายไป backup
+            if os.path.isfile(video_path):
+                os.makedirs(CONFIG["backup_video_dir"], exist_ok=True)
+                shutil.move(video_path, os.path.join(CONFIG["backup_video_dir"], os.path.basename(video_path)))
+                print(f"[→] Moved {video_path} to backup folder.")
+        finally:
+            cap.release()
             if CONFIG["show_frame"]:
-                pass
-                cv2.imshow(f"{source_name}", resized_frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-        print(f"[✔] Saved {saved_count} frames from {video_path}")
-        
-        # สำหรับวิดีโอไฟล์ → ย้ายไป backup
-        if os.path.isfile(video_path):
-            os.makedirs(CONFIG["backup_video_dir"], exist_ok=True)
-            shutil.move(video_path, os.path.join(CONFIG["backup_video_dir"], os.path.basename(video_path)))
-            print(f"[→] Moved {video_path} to backup folder.")
-    finally:
-        cap.release()
-        if CONFIG["show_frame"]:
-            cv2.destroyWindow(source_name)
+                cv2.destroyWindow(source_name)
 
 def process_videos_in_folder(source_name, source_folder, output_folder):
     video_files = [f for f in os.listdir(source_folder) if is_video_file(f)]

@@ -23,7 +23,7 @@ ROI_ALL ={
 
 
 CONFIG = {
-    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_model/weights/best.pt",
+    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_b_model3/weights/best.pt",
     "input_dirs": {
         "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output" 
     },
@@ -41,9 +41,9 @@ CONFIG = {
         #"R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
 
         "roi_polygons": {
-        #"R2-07-11": [(175, 19), (273, 9), (406, 17), (406, 174), (218, 219), (177, 118)],
-        "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
-        "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
+        "R2-07-11": [(175, 19), (273, 9), (406, 17), (406, 174), (218, 219), (177, 118)],
+        # "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
+        # "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
 
 
        #ROI_ALL[SELECTED_MACHINE]
@@ -51,10 +51,10 @@ CONFIG = {
 
     "confidence_threshold": 0.5,
     "save_image": False,
-    "save_video": False,
+    "save_video": True,
     "save_csv": False,
     "insert_db": True,
-    "show_frame_predict": False,
+    "show_frame_predict": True,
 }
 
 def insert_to_postgres(df):
@@ -150,6 +150,17 @@ def predict_images(input_dir, output_dir, model, name_tag, device="cpu"):
                     label = f"{label_name} ({conf:.2f})"
                     cv2.rectangle(img, (box_coords[0], box_coords[1]), (box_coords[2], box_coords[3]), (0, 255, 0), 2)
                     cv2.putText(img, label, (box_coords[0], box_coords[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+        # วาด ROI Polygon (เส้นขอบโซนตรวจจับแต่ละเครื่อง)
+        for machine_name, polygon in roi_polygons.items():
+            pts = np.array(polygon, np.int32).reshape((-1, 1, 2))
+            cv2.polylines(img, [pts], isClosed=True, color=(0, 255, 255), thickness=2)
+
+            # แสดงชื่อเครื่องไว้ที่กลาง polygon
+            cx = int(np.mean([p[0] for p in polygon]))
+            cy = int(np.mean([p[1] for p in polygon]))
+            cv2.putText(img, machine_name, (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+
 
         # วนลูปแยกเครื่อง
         for machine_name, data in machine_data.items():

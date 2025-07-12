@@ -7,7 +7,7 @@ from multiprocessing import Process
 CONFIG = {
     "sources": {
         #"input1": "rtsp://admin:Plant_1340@192.168.75.45:554/Streaming/Channels/801"
-        "input1": "/home/smart/Project-AI-CCTV/vdo_test/oven"
+        "input1": "/home/smart/Project-AI-CCTV/vdo_test/oven_b"
     },
     "output_dirs": {
         "input1": "/home/smart/Project-AI-CCTV/test_oven_1/output"
@@ -15,7 +15,7 @@ CONFIG = {
     },
     "backup_video_dir": "/home/smart/Project-AI-CCTV/test_oven_1/output/input_backup",
     "save_interval": 25,
-    "show_frame": False,
+    "show_frame": True,
     "resize": (640, 384)  # ขนาด resize
 }
 

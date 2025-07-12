@@ -23,18 +23,17 @@ ROI_ALL ={
 
 
 CONFIG = {
-    "model_path": "/app/oven_machine_model/weights/best.pt",
+    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_b_model4/weights/best.pt",
     "input_dirs": {
-        "input1": "/app/test_oven_1/output" 
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/output" 
     },
     "predict_dirs": {
-        "input1": "/app/test_oven_1/predict"
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/predict"
     },
     "no_box_dirs": {
-        "input1": "/app/test_oven_1/no_box"
+        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/no_box"
     },
     
-
     # "roi_polygon": [  # พิกัด 4 จุดของกรอบ (ROI)
   
     #"roi_polygons": {
@@ -42,9 +41,9 @@ CONFIG = {
         #"R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
 
         "roi_polygons": {
-        #"R2-07-11": [(175, 19), (273, 9), (406, 17), (406, 174), (218, 219), (177, 118)],
-        "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
-        "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
+        "R2-07-11": [(175, 19), (273, 9), (406, 17), (406, 174), (218, 219), (177, 118)],
+        # "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
+        # "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
 
 
        #ROI_ALL[SELECTED_MACHINE]
@@ -53,15 +52,12 @@ CONFIG = {
     "confidence_threshold": 0.5,
     "save_image": False,
     "save_video": False,
-    "save_csv": True,
+    "save_csv": False,
     "insert_db": True,
     "show_frame_predict": False,
 }
 
-
-
 def insert_to_postgres(df):
-    
     try:
         values = [
             (
@@ -85,7 +81,7 @@ def insert_to_postgres(df):
         ) as conn:
             with conn.cursor() as cur:
                 insert_query = """
-                    INSERT INTO smart_ai.oven_machine
+                    INSERT INTO smart_ai.oven_machine_b
                     (predict_time, detection_result, main_signal,sub_signal,avg_conf, file_name, machine_name)
                     VALUES %s
                 """
@@ -249,7 +245,6 @@ def predict_images(input_dir, output_dir, model, name_tag, device="cpu"):
             os.remove(img_path)
         except Exception as e:
             print(f"[!] Failed to remove {img_path}: {e}")
-
 # def is_box_inside_polygon(box, polygon):
 #     x1, y1, x2, y2 = box
 #     box_points = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
@@ -261,7 +256,7 @@ def get_box_machine_name(box, roi_polygons):
             return machine_name
     return None
 
-def run_path_to_predict_roi_polygon_oven():
+def run_path_to_predict_roi_polygon_oven_b():
     # model = YOLO(CONFIG["model_path"])
     # model.to('cuda')
     device = 0 if torch.cuda.is_available() else 'cpu'
@@ -283,4 +278,4 @@ def run_path_to_predict_roi_polygon_oven():
         print(" Stopped by user")
 
 if __name__ == "__main__":
-    run_path_to_predict_roi_polygon_oven()
+    run_path_to_predict_roi_polygon_oven_b()

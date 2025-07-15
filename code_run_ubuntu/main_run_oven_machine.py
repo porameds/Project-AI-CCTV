@@ -1,6 +1,6 @@
 from multiprocessing import Process
 from mass_cam_to_path import run_cam_to_path_oven
-from mass_path_to_predict2_roi_polygon import run_path_to_predict_roi_polygon_oven #,mass_path_to_predict2_roi_polygon
+from mass_path_to_predict2_roi_polygon import run_path_to_predict_roi_polygon_oven 
 #from python_analyze import run_job
 import multiprocessing
 

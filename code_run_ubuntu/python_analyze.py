@@ -82,12 +82,9 @@ def insert_on_conflict(df, target_table="oven_summary_test"):
         FROM {schema}.{temp_table}
         ON CONFLICT (predict_time, file_name) DO NOTHING;
     """
-    
-
     # Execute insert
     with engine.begin() as conn:
         conn.execute(text(insert_sql))
-
     print(f"[{datetime.now()}] เขียนข้อมูลลง {schema}.{target_table} สำเร็จ จำนวน {df.shape[0]} แถว")
 
 def count_fai_judge_summary():
@@ -100,9 +97,6 @@ def count_fai_judge_summary():
             FROM smart_ai.oven_summary_test
             GROUP BY DATE_TRUNC('hour', predict_time)
             ORDER BY predict_hour DESC;
-
-
-
     """
     df_1 = pd.read_sql(query, engine)
     return df_1
@@ -114,21 +108,17 @@ def insert_on_conflict_fai_judge(df_1, target_table="oven_summary_count_fai_judg
 
     temp_table = f"{target_table}_staging"
     schema = DB_CONFIG["schema"]
-
     # ลบค่าที่ซ้ำกันใน staging ก่อน (กรณีซ้ำจาก pandas)
     df_1.drop_duplicates(subset=["predict_hour"], inplace=True)
-
     # สร้าง staging table
     df_1.to_sql(temp_table, engine, schema=schema, index=False, if_exists="replace")
     print(f"[{datetime.now()}] เขียน staging table {schema}.{temp_table} แล้ว ")
-
     # SQL ลบค่าที่มี predict_hour ซ้ำจากตารางจริง
     delete_sql = f"""
         DELETE FROM {schema}.{target_table} t
         USING {schema}.{temp_table} s
         WHERE t.predict_hour = s.predict_hour;
     """
-
     # SQL แทรกข้อมูลใหม่เข้าไป
     insert_sql = f"""
         INSERT INTO {schema}.{target_table} (
@@ -138,16 +128,15 @@ def insert_on_conflict_fai_judge(df_1, target_table="oven_summary_count_fai_judg
             predict_hour, machine_open, pass_count, fail_count
         FROM {schema}.{temp_table};
     """
-
     # Execute delete + insert
     with engine.begin() as conn:
         conn.execute(text(delete_sql))
         conn.execute(text(insert_sql))
-
     print(f"[{datetime.now()}] ลบและแทรกข้อมูลใน {schema}.{target_table} สำเร็จ จำนวน {df_1.shape[0]} แถว")
 
 
 def run_job():
+
     try:
         print(f"[{datetime.now()}] เริ่มทำงาน fetch + insert ...")
         df = fetch_from_db()
@@ -158,7 +147,6 @@ def run_job():
         insert_on_conflict_fai_judge(df_1)
 
         print(f"[{datetime.now()}] ✅ Schedule working")
-
     except Exception as e:
         print(f"[{datetime.now()}]  ERROR: {e}")
 

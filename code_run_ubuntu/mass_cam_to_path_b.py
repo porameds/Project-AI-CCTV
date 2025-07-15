@@ -32,7 +32,6 @@ def capture_and_save_frames_from_file(source_name, video_path, output_dir):
         os.makedirs(output_dir, exist_ok=True)
         frame_count = 0
         saved_count = 0
-
         # ใช้ชื่อไฟล์หากเป็นวิดีโอไฟล์ / หรือชื่อ "live" สำหรับ RTSP
         base_name = os.path.splitext(os.path.basename(video_path))[0] if os.path.isfile(video_path) else "live"
 
@@ -55,9 +54,7 @@ def capture_and_save_frames_from_file(source_name, video_path, output_dir):
                 cv2.imshow(f"{source_name}", resized_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-
         print(f"[✔] Saved {saved_count} frames from {video_path}")
-        
         # สำหรับวิดีโอไฟล์ → ย้ายไป backup
         if os.path.isfile(video_path):
             os.makedirs(CONFIG["backup_video_dir"], exist_ok=True)
@@ -81,7 +78,6 @@ def process_videos_in_folder(source_name, source_folder, output_folder):
 
 def start_process(source_name, source):
     output_folder = CONFIG["output_dirs"][source_name]
-
     if source.lower().startswith("rtsp://"):
         # ✅ RTSP stream
         capture_and_save_frames_from_file(source_name, source, output_folder)

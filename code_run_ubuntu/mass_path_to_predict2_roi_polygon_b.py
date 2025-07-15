@@ -23,15 +23,15 @@ ROI_ALL ={
 
 
 CONFIG = {
-    "model_path": "/home/smart/Project-AI-CCTV/model/oven_machine_b_model4/weights/best.pt",
+    "model_path": "/app/oven_machine_b_model4/weights/best.pt",
     "input_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/output" 
+        "input1": "/app/test_oven_2/output" 
     },
     "predict_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/predict"
+        "input1": "/app/test_oven_2/predict"
     },
     "no_box_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/no_box"
+        "input1": "/app/test_oven_2/no_box"
     },
     
     # "roi_polygon": [  # พิกัด 4 จุดของกรอบ (ROI)

@@ -10,10 +10,10 @@ CONFIG = {
         #"input1": "/home/smart/Project-AI-CCTV/vdo_test/oven_b"
     },
     "output_dirs": {
-        "input1": "/home/smart/Project-AI-CCTV/test_oven_2/output"
+        "input1": "/app/test_oven_2/output"
         # "input2": "D:/Smart/AI/CCTV/PPE RDEV/dataset1/test2/output"
     },
-    "backup_video_dir": "/home/smart/Project-AI-CCTV/test_oven_2/output/input_backup",
+    "backup_video_dir": "/app/test_oven_2/output/input_backup",
     "save_interval": 25,
     "show_frame": False,
     "resize": (640, 384)  # ขนาด resize

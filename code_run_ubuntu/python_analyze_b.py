@@ -42,7 +42,7 @@ def fetch_from_db():
             main_signal,
             sub_signal,
             CASE 
-                WHEN main_signal = 1 AND sub_signal = 2 THEN 'P'
+                WHEN main_signal = 1 AND sub_signal in (2,3) THEN 'P'
                 ELSE 'F'
             END AS fai_judge,
             avg_conf,

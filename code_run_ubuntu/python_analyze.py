@@ -33,7 +33,7 @@ def fetch_from_db():
             FROM smart_ai.oven_machine
             WHERE 
                 main_signal IN (0, 1)
-                AND avg_conf > 0.5
+                AND avg_conf > -1
                 AND predict_time IS NOT NULL
         )
         SELECT
@@ -43,6 +43,7 @@ def fetch_from_db():
             sub_signal,
             CASE 
                 WHEN main_signal = 1 AND sub_signal = 2 THEN 'P'
+                WHEN detection_result = 'no detection' THEN 'no detect'
                 ELSE 'F'
             END AS fai_judge,
             avg_conf,
@@ -95,7 +96,8 @@ def count_fai_judge_summary():
                 SUM(CASE WHEN fai_judge = 'P' THEN 1 ELSE 0 END) AS pass_count,
                 SUM(CASE WHEN fai_judge = 'F' THEN 1 ELSE 0 END) AS fail_count,
                 SUM(CASE WHEN main_signal = '1' AND machine_name = 'R2-07-11' THEN 1 ELSE 0 END) AS oven_1,  
-             	SUM(CASE WHEN main_signal = '1' AND machine_name = 'R2-07-12' THEN 1 ELSE 0 END) AS oven_2 
+             	SUM(CASE WHEN main_signal = '1' AND machine_name = 'R2-07-12' THEN 1 ELSE 0 END) AS oven_2,
+                SUM(CASE WHEN fai_judge = 'no detect' THEN 1 ELSE 0 END) AS no_detect
             FROM smart_ai.oven_summary_test
             GROUP BY DATE_TRUNC('hour', predict_time)
             ORDER BY predict_hour DESC;
@@ -124,10 +126,10 @@ def insert_on_conflict_fai_judge(df_1, target_table="oven_summary_count_fai_judg
     # SQL แทรกข้อมูลใหม่เข้าไป
     insert_sql = f"""
         INSERT INTO {schema}.{target_table} (
-            predict_hour, machine_open, pass_count, fail_count, oven_1, oven_2
+            predict_hour, machine_open, pass_count, fail_count, oven_1, oven_2, no_detect
         )
         SELECT
-            predict_hour, machine_open, pass_count, fail_count, oven_1, oven_2
+            predict_hour, machine_open, pass_count, fail_count, oven_1, oven_2, no_detect
         FROM {schema}.{temp_table};
     """
     # Execute delete + insert

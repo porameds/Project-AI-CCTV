@@ -41,20 +41,18 @@ CONFIG = {
         #"R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
 
         "roi_polygons": {
-        "R2-07-11": [(175, 19), (273, 9), (406, 17), (406, 174), (218, 219), (177, 118)],
-        # "R2-07-11": [(308, 110), (456, 130), (445, 271), (301, 312)],
-        # "R2-07-12": [(399, 125), (525, 138), (511, 249), (388, 280)]
-
-
-       #ROI_ALL[SELECTED_MACHINE]
+        "machine-1": [(275, 16), (393, 16), (393, 191), (274, 191)],
+        "machine-2": [(256, 33), (322, 33), (322, 143), (255, 143)],
+        "machine-3": [(229, 21), (292, 21), (292, 119), (229, 119)],
+        "machine-4": [(208, 20), (257, 20), (257, 88), (208, 88)],
     },
 
     "confidence_threshold": 0.5,
-    "save_image": False,
-    "save_video": False,
-    "save_csv": False,
+    "save_image": True,
+    "save_video": True,
+    "save_csv": True,
     "insert_db": True,
-    "show_frame_predict": False,
+    "show_frame_predict": True,
 }
 
 def insert_to_postgres(df):
@@ -81,7 +79,7 @@ def insert_to_postgres(df):
         ) as conn:
             with conn.cursor() as cur:
                 insert_query = """
-                    INSERT INTO smart_ai.oven_machine_b
+                    INSERT INTO smart_ai.oven_machine_b_test
                     (predict_time, detection_result, main_signal,sub_signal,avg_conf, file_name, machine_name)
                     VALUES %s
                 """

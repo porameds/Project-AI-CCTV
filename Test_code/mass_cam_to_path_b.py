@@ -15,7 +15,7 @@ CONFIG = {
     },
     "backup_video_dir": "/home/smart/Project-AI-CCTV/test_oven_2/output/input_backup",
     "save_interval": 25,
-    "show_frame": False,
+    "show_frame": True,
     "resize": (640, 384)  # ขนาด resize
 }
 

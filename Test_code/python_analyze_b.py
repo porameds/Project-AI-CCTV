@@ -97,6 +97,7 @@ def count_fai_judge_summary():
                 SUM(CASE WHEN main_signal  = '1' THEN 1 ELSE 0 END) AS machine_open,
                 SUM(CASE WHEN fai_judge = 'P' THEN 1 ELSE 0 END) AS pass_count,
                 SUM(CASE WHEN fai_judge = 'F' THEN 1 ELSE 0 END) AS fail_count
+                COUNT()
             FROM smart_ai.oven_summary_test_b
             GROUP BY DATE_TRUNC('hour', predict_time)
             ORDER BY predict_hour DESC;

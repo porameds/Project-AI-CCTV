@@ -93,7 +93,9 @@ def count_fai_judge_summary():
                 DATE_TRUNC('hour', predict_time) AS predict_hour,
                 SUM(CASE WHEN main_signal  = '1' THEN 1 ELSE 0 END) AS machine_open,
                 SUM(CASE WHEN fai_judge = 'P' THEN 1 ELSE 0 END) AS pass_count,
-                SUM(CASE WHEN fai_judge = 'F' THEN 1 ELSE 0 END) AS fail_count
+                SUM(CASE WHEN fai_judge = 'F' THEN 1 ELSE 0 END) AS fail_count,
+                SUM(CASE WHEN main_signal = '1' AND machine_name = 'R2-07-11' THEN 1 ELSE 0 END) AS oven_1,  
+             	SUM(CASE WHEN main_signal = '1' AND machine_name = 'R2-07-12' THEN 1 ELSE 0 END) AS oven_2 
             FROM smart_ai.oven_summary_test
             GROUP BY DATE_TRUNC('hour', predict_time)
             ORDER BY predict_hour DESC;
@@ -122,10 +124,10 @@ def insert_on_conflict_fai_judge(df_1, target_table="oven_summary_count_fai_judg
     # SQL แทรกข้อมูลใหม่เข้าไป
     insert_sql = f"""
         INSERT INTO {schema}.{target_table} (
-            predict_hour, machine_open, pass_count, fail_count
+            predict_hour, machine_open, pass_count, fail_count, oven_1, oven_2
         )
         SELECT
-            predict_hour, machine_open, pass_count, fail_count
+            predict_hour, machine_open, pass_count, fail_count, oven_1, oven_2
         FROM {schema}.{temp_table};
     """
     # Execute delete + insert

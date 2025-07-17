@@ -1,0 +1,4 @@
+45:801
+50:501
+
+rtsp://admin:Plant_1340@192.168.75.52:554/Streaming/Chanels/601

@@ -1,31 +1,73 @@
 import os
 import json
+from PIL import Image
 
-# กำหนด path
-image_folder = "dataset/images"
-json_file = "dataset/annotation.json"
+# กำหนด category
+categories = [
+    { "id": 1, "name": "machine open", "supercategory": "" },
+	{ "id": 2, "name": "glove", "supercategory": "" },
+	{ "id": 3, "name": "black glove", "supercategory": "" },
+	{ "id": 4, "name": "mask", "supercategory": "" }
+]
 
-# โหลด annotation
-with open(json_file, "r") as f:
-    data = json.load(f)
+# เส้นทางโฟลเดอร์ภาพ
+image_folder = 'images'
+output_json = 'annotations/instances_train.json'
 
-# เปลี่ยนชื่อภาพตาม id → id.PNG
-for img_info in data["images"]:
-    old_name = img_info["file_name"]
-    new_name = f"{img_info['id']}.PNG"
+# Mock annotation สำหรับตัวอย่าง
+# (ควรแทนที่ด้วย bbox จริงจาก labeling tool)
+def get_annotations_for_image(image_id, width, height):
+    return [{
+        "id": image_id,
+        "image_id": image_id,
+        "category_id": 1,
+        "bbox": [50, 30, 100, 200],  # [x, y, width, height]
+        "area": 100 * 200,
+        "iscrowd": 0,
+        "segmentation": []  # หรือ polygon ถ้ามี
+    }]
 
-    old_path = os.path.join(image_folder, old_name)
-    new_path = os.path.join(image_folder, new_name)
+images = []
+annotations = []
+image_id = 1
+annotation_id = 1
 
-    if os.path.exists(old_path):
-        print(f"🔁 {old_name} → {new_name}")
-        os.rename(old_path, new_path)
-        img_info["file_name"] = new_name  # อัปเดตใน JSON ด้วย
-    else:
-        print(f"⚠️ ไม่พบไฟล์: {old_name}")
+for filename in os.listdir(image_folder):
+    if filename.endswith((".jpg", ".png")):
+        filepath = os.path.join(image_folder, filename)
+        with Image.open(filepath) as img:
+            width, height = img.size
 
-# (เลือก) บันทึก JSON กลับ
-with open(json_file, "w") as f:
-    json.dump(data, f, indent=2)
+        images.append({
+            "id": image_id,
+            "file_name": filename,
+            "width": width,
+            "height": height
+        })
 
-print("✅ เปลี่ยนชื่อและอัปเดต annotation.json เรียบร้อย")
+        anns = get_annotations_for_image(image_id, width, height)
+        for ann in anns:
+            ann["id"] = annotation_id
+            annotations.append(ann)
+            annotation_id += 1
+
+        image_id += 1
+
+coco_format = {
+    "info": {
+        "description": "My COCO dataset",
+        "version": "1.0",
+        "year": 2025
+    },
+    "licenses": [],
+    "images": images,
+    "annotations": annotations,
+    "categories": categories
+}
+
+# บันทึกเป็น JSON
+os.makedirs(os.path.dirname(output_json), exist_ok=True)
+with open(output_json, 'w') as f:
+    json.dump(coco_format, f, indent=4)
+
+print(f"✅ บันทึก dataset ในรูปแบบ COCO ที่: {output_json}")

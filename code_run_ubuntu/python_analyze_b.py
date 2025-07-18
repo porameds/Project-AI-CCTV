@@ -91,7 +91,7 @@ def count_fai_judge_summary():
             SELECT
                 machine_name,
                 DATE_TRUNC('hour', predict_time) AS predict_hour,
-                SUM(CASE WHEN main_signal  = '1' THEN 1 ELSE 0 END) AS machine_open,
+                SUM(CASE WHEN main_signal  = 1 THEN 1 ELSE 0 END) AS machine_open,
                 SUM(CASE WHEN fai_judge = 'P' THEN 1 ELSE 0 END) AS pass_count,
                 SUM(CASE WHEN fai_judge = 'F' THEN 1 ELSE 0 END) AS fail_count,
                 SUM(CASE WHEN fai_judge = 'no detect' THEN 1 ELSE 0 END) AS no_detect
@@ -111,7 +111,7 @@ def insert_on_conflict_fai_judge(df_1, target_table="oven_summary_count_fai_judg
     schema = DB_CONFIG["schema"]
 
     # ลบค่าที่ซ้ำกันใน staging ก่อน (กรณีซ้ำจาก pandas)
-    df_1.drop_duplicates(subset=["predict_hour"], inplace=True)
+    df_1.drop_duplicates(subset=["machine_name", "predict_hour"], inplace=True)
 
     # สร้าง staging table
     df_1.to_sql(temp_table, engine, schema=schema, index=False, if_exists="replace")

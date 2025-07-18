@@ -72,8 +72,10 @@ code_run_ubuntu/test_oven_1/predict/input1_results.csv
 
 #frame from yolo11
 frame_*.txt
+merged_*.txt
 
 #result.csv
 *.csv
 
 code_run_ubuntu/test_oven_1/predict/input1_results.csv
+*.cache

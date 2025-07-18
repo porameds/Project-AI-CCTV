@@ -28,8 +28,8 @@ python3 step_1_coco_to_yolo11_and_split.py \
 """
 python3 /home/smart/Project-AI-CCTV/Test_code/step_1_coco_to_yolo11_and_split.py \
 --images_directory_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/images" \
---annotations_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/annotations/instances_default.json" \
---output_path="/home/smart/Project-AI-CCTV/coco_to_yolo11/yolo11_oven_machine_b_1" \
+--annotations_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/annotations/merged_instances.json" \
+--output_path="/home/smart/Project-AI-CCTV/coco_to_yolo11/yolo11_oven_machine_b_1_retrain" \
 --train_split_ratio=0.8 \
 --valid_split_ratio=0.5 \
 --clean_data=True 

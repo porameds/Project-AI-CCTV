@@ -4,32 +4,12 @@ from glob import glob
 import supervision as sv
 import yaml
 
-""" ไม่ใช้
-python step_1_coco_to_yolo11_and_split \
-  --images_directory_path="D:/Smart/AI/CCTV/Remove ADH R2-12-17_L2/dataset2/coco/clean_cart/images/Train" \
-  --annotations_path="D:/Smart/AI/CCTV/Remove ADH R2-12-17_L2/dataset2/coco/clean_cart/annotations/instances_Train.json" \
-  --output_path="D:/Smart/AI/CCTV/Remove ADH R2-12-17_L2/dataset2/yolo11" \
-  --train_split_ratio=0.8 \
-  --valid_split_ratio=0.5 \
-  --clean_data=True
-  """
 
-
-""" ใช้อันนี้ 
-python3 step_1_coco_to_yolo11_and_split.py \
---images_directory_path="/home/smart/Project_ai_barcode/dataset_barcode_2/images" \
---annotations_path="/home/smart/Project_ai_barcode/dataset_barcode_2/annotations/instances_default.json" \
---output_path="/home/smart/Project_ai_barcode/yolo11_barcode_2" \
---train_split_ratio=0.8 \
---valid_split_ratio=0.5 \
---clean_data=True \
-
-"""
-"""
+"""ใช้อันนี้ 
 python3 /home/smart/Project-AI-CCTV/Test_code/step_1_coco_to_yolo11_and_split.py \
---images_directory_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/images" \
---annotations_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/annotations/merged_instances.json" \
---output_path="/home/smart/Project-AI-CCTV/coco_to_yolo11/yolo11_oven_machine_b_1_retrain" \
+--images_directory_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_123/images/default" \
+--annotations_path="/home/smart/Project-AI-CCTV/dataset/dataset_oven_123/annotations/instances_default.json" \
+--output_path="/home/smart/Project-AI-CCTV/coco_to_yolo11/yolo11_oven_machine_b_123" \
 --train_split_ratio=0.8 \
 --valid_split_ratio=0.5 \
 --clean_data=True 

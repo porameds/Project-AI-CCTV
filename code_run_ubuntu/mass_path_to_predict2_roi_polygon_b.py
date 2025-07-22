@@ -16,7 +16,7 @@ ROI_ALL ={
 }
 """
 CONFIG = {
-    "model_path": "/app/oven_machine_b_model5/weights/best.pt",
+    "model_path": "/app/oven_machine_b_model6/weights/best.pt",
     "input_dirs": {
         "input1": "/app/test_oven_2/output" 
     },
@@ -27,10 +27,10 @@ CONFIG = {
         "input1": "/app/test_oven_2/no_box"
     },
        "roi_polygons": {
-        "machine-1": [(275, 16), (393, 16), (393, 191), (274, 191)],
+        "machine-1": [(281, 16), (393, 16), (393, 191), (281, 191)],
         "machine-2": [(256, 33), (322, 33), (322, 143), (255, 143)],
-        "machine-3": [(237, 21), (292, 21), (292, 119), (237, 119)],
-        "machine-4": [(208, 20), (257, 20), (257, 88), (208, 88)],
+        "machine-3": [(225, 21), (292, 21), (292, 119), (225, 119)],
+        #"machine-4": [(208, 20), (257, 20), (257, 88), (208, 88)],
     },
     "confidence_threshold": 0.5,
     "save_image": False,

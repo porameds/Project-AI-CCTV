@@ -16,7 +16,7 @@ pip-log.txt
 
 # Jupyter
 .ipynb_checkpoints
-*.ipynb
+
 
 # PyTorch / TensorFlow / Checkpoints / Models
 *.pt

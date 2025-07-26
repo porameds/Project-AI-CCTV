@@ -4,10 +4,10 @@ import shutil
 
 # ====== PATH CONFIGURATION ======
 old_json_path = '/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/annotations/instances_default.json'
-new_json_path = '/home/smart/Project-AI-CCTV/dataset/dataset_small_oven/annotations/instances_default.json'
-merged_json_path = '/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/annotations/merged_instances.json'
+new_json_path = '/home/smart/Project-AI-CCTV/ove_b_retrain_add_some_class/annotations/instances_default.json'
+merged_json_path = '/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/annotations/merged_01_instances.json'
 image_dir = '/home/smart/Project-AI-CCTV/dataset/dataset_oven_machine_b_1/images'               # ที่เก็บภาพทั้งหมด old img + new img
-new_image_dir = '/home/smart/Project-AI-CCTV/dataset/dataset_small_oven/images/default'       # ที่เก็บภาพชุดใหม่ก่อน merge
+new_image_dir = '/home/smart/Project-AI-CCTV/ove_b_retrain_add_some_class/images/default'       # ที่เก็บภาพชุดใหม่ก่อน merge
 # =================================
 
 # โหลด JSON เดิม

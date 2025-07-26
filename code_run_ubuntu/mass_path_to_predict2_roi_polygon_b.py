@@ -16,7 +16,7 @@ ROI_ALL ={
 }
 """
 CONFIG = {
-    "model_path": "/app/oven_machine_b_model6/weights/best.pt",
+    "model_path": "/app/oven_machine_b_model86/weights/best.pt",
     "input_dirs": {
         "input1": "/app/test_oven_2/output" 
     },
